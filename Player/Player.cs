@@ -200,7 +200,7 @@ namespace MCForge
         public VoteKickChoice voteKickChoice = VoteKickChoice.HasntVoted;
 
         // Extra storage for custom commands
-        public ExtrasCollection Extras = new ExtrasCollection();
+        public Dictionary<string, string> Extras = new Dictionary<string, string>();
 
         public bool loggedIn = false;
         public Player(Socket s)
@@ -492,12 +492,7 @@ namespace MCForge
                         Kick("You're still banned (temporary ban)!");
                     }
                 } catch { }
-                // OMNI BAN
-                //these are hackers. Please leave this omni ban for the safety of MCForge users. Thanks!
-                if (this.name.ToLower() == "shnaw" || this.ip == "899.23.213.9") { Kick("You have been Omni-banned for hacking MCForge Servers! go to forums.mcforge.net to appeal this ban."); return; }
-                if (this.name.ToLower() == "bizarrecake" || this.ip == "84.229.132.189" || this.ip == "84.228.58.92") { Kick("You have been Omni-banned for hacking MCForge Servers!  Go to forums.mcforge.net to appeal this ban."); return; }
-                if (this.name.ToLower() == "aep1989" || this.ip == "128.194.57.225") { Kick("You have been Omni-banned.  forums.mcforge.net for appeal."); return; }
-                // Whitelist check.
+               
                 if (Server.useWhitelist)
                 {
                     if (Server.verify)
@@ -580,7 +575,7 @@ namespace MCForge
                         BitConverter.ToString(md5.ComputeHash(enc.GetBytes(Server.salt + name)))
                         .Replace("-", "").ToLower().TrimStart('0'))
                     {
-                        if (!IPInPrivateRange(ip))
+                        if (ip != "127.0.0.1" && !ip.StartsWith("192.168.") && !ip.StartsWith("172.16.") && !ip.StartsWith("10."))
                         {
                             Kick("Login failed! Try again."); return;
                         }
@@ -700,11 +695,6 @@ namespace MCForge
                 money = int.Parse(playerDb.Rows[0]["Money"].ToString());
                 totalKicked = int.Parse(playerDb.Rows[0]["totalKicked"].ToString());
                 SendMessage("Welcome back " + color + prefix + name + Server.DefaultColor + "! You've been here " + totalLogins + " times!");
-                if (Server.muted.Contains(name))
-                {
-                    muted = true;
-                    GlobalMessage(name + " is still muted from the last time they went offline.");
-                }
             }
             playerDb.Dispose();
 
@@ -2648,29 +2638,5 @@ namespace MCForge
 
 #endregion
 
-        private static bool IPInPrivateRange(string ip)
-        {
-            if (ip == "127.0.0.1" || ip.StartsWith("192.168.") || ip.StartsWith("10."))
-                return true;
-
-            if (ip.StartsWith("172."))
-            {
-                string[] split = ip.Split('.');
-                if (split.Length >= 2)
-                {
-                    try
-                    {
-                        int secondPart = Convert.ToInt32(split[1]);
-                        return (secondPart >= 16 && secondPart <= 31);
-                    }
-                    catch (Exception ex)
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            return false;
-        }
     }
 }
